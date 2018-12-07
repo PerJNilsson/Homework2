@@ -21,8 +21,10 @@ int main(){
   size_t i,j;
   double sum_tmp;
   double rand_nbr;
-  double m[nbr_dim] = {0};
-  double n[nbr_dim] = {0};
+  double m1[nbr_dim] = {0};
+  double m2[nbr_dim] = {0};
+  double n1[nbr_dim] = {0};
+  double n2[nbr_dim] = {0};
   double p_m, p_n;
   double I_value;
   double variance;
@@ -44,7 +46,11 @@ int main(){
   for(j = 0; j < nbr_dim; j++){
     rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
     rand_nbr -= 0.5;
-    n[j] = rand_nbr;
+    n1[j] = rand_nbr;
+
+    rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
+    rand_nbr -= 0.5;
+    n2[j] = rand_nbr;
   }
 
   p_m = calculate_weight(m);
@@ -54,7 +60,9 @@ int main(){
   for(i = 0; i < nbr_points; i++){
     for(j = 0; j < nbr_dim; j++){
       rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
-      n[j] = m[j] + delta*(rand_nbr - 0.5);
+      n1[j] = m1[j] + delta*(rand_nbr - 0.5);
+      rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
+      n2[j] = m2[j] + delta*(rand_nbr - 0.5);
     }
 
     p_m = calculate_weight(m);
@@ -62,9 +70,15 @@ int main(){
 
     rand_nbr = gsl_rng_uniform(q);
     if((p_n / p_m) > rand_nbr){
-      m[0] = n[0];
-      m[1] = n[1];
-      m[2] = n[2];
+      m1[0] = n1[0];
+      m1[1] = n1[1];
+      m1[2] = n1[2];
+
+      m2[0] = n2[0];
+      m2[1] = n2[1];
+      m2[2] = n2[2];
+     
+
       function_val[i] = calculate_function_g(n);
       nbr_switching_state++;
     } else {
@@ -114,6 +128,15 @@ double calculate_weight(double coords[3]){
     exp(-(coords[0]*coords[0] + coords[1]*coords[1] + coords[2]*coords[2]));
     return prob;
 }
+
+double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
+  double E_l;
+
+  
+
+}
+
+
 
 // // Setup random number generator
 // double rand;
