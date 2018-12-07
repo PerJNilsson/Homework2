@@ -53,11 +53,11 @@ int main(){
   for(j = 0; j < nbr_dim; j++){
     rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
     rand_nbr -= 0.5;
-    n1[j] = rand_nbr;
+    m1[j] = rand_nbr;
 
     rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
     rand_nbr -= 0.5;
-    n2[j] = rand_nbr;
+    m2[j] = rand_nbr;
   }
 
   p_m = calculate_probability(m1, m2, alpha);
@@ -91,7 +91,6 @@ int main(){
     } else {
       energy[i] = local_energy(m1, m2, alpha);
     }
-  
     //save electron distance from origo
     electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
     electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
@@ -115,7 +114,7 @@ int main(){
   }
   variance = sum_tmp / nbr_iterations - I_value * I_value;
   error = sqrt(variance / nbr_iterations);
-  
+
   FILE *fp;
 
   //Write to file, electron distance from origo data
@@ -133,11 +132,10 @@ int main(){
     fprintf(fp, "\n");
   }
   fclose(fp);
-  
-  printf("We are here now\n");
+
   // Deallocate rng
-  //gsl_rng_free (q);
-  
+  gsl_rng_free (q);
+
 }//End MAIN
 
 
@@ -169,17 +167,18 @@ double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
   double cross_mult;
   double m1_squared, m2_squared;
   double length_m12;
+  double a_r12;
 
   length_m12 = sqrt((m1[0]-m2[0]+m1[1]-m2[1]+m1[2]-m2[2])*(m1[0]-m2[0]+m1[1]-m2[1]+m1[2]-m2[2]));
-
   length_m1 = sqrt((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
   length_m2 = sqrt((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
 
   cross_mult = m1[0]*m2[0]+m1[1]*m2[1]+m1[2]*m2[2];
   m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]))*((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
   m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]))*((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
+  a_r12 = (1+alpha*length_m12);
 
-  E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow((1+alpha*length_m12),2)) - 1.0/ (length_m12*pow((1+alpha*length_m12),3)) - 1.0/ (length_m12*pow((1+alpha*length_m12), 4))+ 1 / length_m12;
+  E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 1.0/ (length_m12*pow(a_r12, 4))+ 1.0 / length_m12;
 }
 
 
