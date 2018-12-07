@@ -7,12 +7,14 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_points 10000000
+#define nbr_iterations 100
 #define nbr_dim 3
 
-double calculate_weight(double coords[nbr_dim]);
-double calculate_function(double p[nbr_dim]);
-double calculate_function_g(double p[nbr_dim]);
+double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
+double calculate_probability(double[nbr_dim], double[nbr_dim], double);
+double local_energy (double[nbr_dim], double[nbr_dim], double);
+double pow(double x, double y);
+double calculate_angle(double[nbr_dim], double[nbr_dim]);
 
 
 /* Main Program */
@@ -30,6 +32,8 @@ int main(){
   double variance;
   double error;
   double delta = 2.5;
+  double alpha = 0.1;
+
   size_t nbr_switching_state = 0;
 
   const gsl_rng_type *T; /* static info about rngs */
@@ -40,7 +44,10 @@ int main(){
   gsl_rng_set(q, time(NULL)); /* Initialize rng */
 
 
-  double *function_val = malloc(sizeof(double) * nbr_points);
+  double *energy = malloc(sizeof(double) * nbr_iterations);
+  double *electron1_distance = malloc(sizeof(double) * nbr_iterations);
+  double *electron2_distane = malloc(sizeof(double) * nbr_iterations);
+  double *theta = malloc(sizeof(double) * nbr_iterations);
 
   //initialize random coordinates
   for(j = 0; j < nbr_dim; j++){
@@ -58,6 +65,7 @@ int main(){
   sum_tmp = 0;
   // Main loop
   for(i = 0; i < nbr_points; i++){
+
     for(j = 0; j < nbr_dim; j++){
       rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
       n1[j] = m1[j] + delta*(rand_nbr - 0.5);
@@ -65,8 +73,8 @@ int main(){
       n2[j] = m2[j] + delta*(rand_nbr - 0.5);
     }
 
-    p_m = calculate_weight(m);
-    p_n = calculate_weight(n);
+    p_m = calculate_probability(m1,m2, alpha);
+    p_n = calculate_probability(n1,n2, alpha);
 
     rand_nbr = gsl_rng_uniform(q);
     if((p_n / p_m) > rand_nbr){
@@ -77,13 +85,21 @@ int main(){
       m2[0] = n2[0];
       m2[1] = n2[1];
       m2[2] = n2[2];
-     
 
-      function_val[i] = calculate_function_g(n);
+
+      energy[i] = local_energy(m1, m2, alpha);
       nbr_switching_state++;
     } else {
-      function_val[i] = calculate_function_g(m);
+      energy[i] = local_energy(m1, m2, alpha);
     }
+
+    //save electron distance from origo
+    electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
+    electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
+
+    //save angle
+    theta[i] = calculate_angle(m1,m2);
+
   }// End main loop
 
   sum_tmp = 0;
@@ -106,34 +122,80 @@ int main(){
   printf("Integral: %e, with error(+-): %e\n", I_value, error);
   printf("nbr_switching_state: %lf\n", (double) nbr_switching_state / nbr_points);
 
+  FILE *fp;
+
+  //Write to file, electron distance from origo data
+  fp = fopen("electron_dist.dat","w");
+  for (i = 0; i < nbr_iterations; i++){
+    fprintf(fp, "%e \t %e", electron1_distance[i], electron2_distane[i]);
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
+
+  //Write to file, theta distribution data
+  fp = fopen("theta_dist.dat","w");
+  for (i = 0; i < nbr_iterations; i++){
+    fprintf(fp, "%e", theta[i]);
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
+
+}//End MAIN
+
+
+double calculate_wave_function(double r1[nbr_dim], double r2[nbr_dim], double alpha){
+  double norm_r1, norm_r2, norm_r1r2, value;
+
+  norm_r1 = sqrt(r1[0]*r1[0] + r1[1]*r1[1] + r1[2]*r1[2]);
+  norm_r2 = sqrt(r2[0]*r2[0] + r2[1]*r2[1] + r2[2]*r2[2]);
+  norm_r1r2 =sqrt((r1[0]-r2[0])*(r1[0]-r2[0]) +
+    (r1[1]-r2[1])*(r1[1]-r2[1]) + (r1[2]-r2[2])*(r1[2]-r2[2]));
+
+  value = exp(-2*norm_r1) * exp(-2*norm_r2) *
+    exp(norm_r1r2 / (2 * (1+alpha*norm_r1r2)));
+  return value;
 }
 
-double calculate_function(double p[nbr_dim]){
-  double tmp1, tmp2, fvalue;
-  tmp1 = p[0]*p[0] + p[0]*p[0]*p[1]*p[1] + p[0]*p[0]*p[1]*p[1]*p[2]*p[2];
-  tmp2 = exp(-(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]));
-  fvalue = pow((double) PI, -3.0/2.0) * tmp1 * tmp2;
-  return fvalue;
+
+double calculate_probability(double r1[nbr_dim], double r2[nbr_dim], double alpha){
+  double value;
+  value = calculate_wave_function(r1, r2, alpha);
+  return value*value;
 }
 
-double calculate_function_g(double p[nbr_dim]){
-  double fvalue;
-  fvalue = p[0]*p[0] + p[0]*p[0]*p[1]*p[1] + p[0]*p[0]*p[1]*p[1]*p[2]*p[2];
-  return fvalue;
-}
-
-double calculate_weight(double coords[3]){
-  double prob;
-  prob = pow((double) PI, -3.0/2.0) *
-    exp(-(coords[0]*coords[0] + coords[1]*coords[1] + coords[2]*coords[2]));
-    return prob;
-}
 
 double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
   double E_l;
+  double length_m1;
+  double length_m2;
+  double cross_mult;
+  double m1_squared, m2_squared;
+  double length_m12;
 
-  
+  length_m12 = sqrt((m1[0]-m2[0]+m1[1]-m2[1]+m1[2]-m2[2])*(m1[0]-m2[0]+m1[1]-m2[1]+m1[2]-m2[2]));
 
+  length_m1 = sqrt((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
+  length_m2 = sqrt((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
+
+  cross_mult = m1[0]*m2[0]+m1[1]*m2[1]+m1[2]*m2[2];
+  m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]))*((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
+  m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]))*((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
+
+  E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow((1+alpha*length_m12),2)) - 1.0/ (length_m12*pow((1+alpha*length_m12),3)) - 1.0/ (length_m12*pow((1+alpha*length_m12), 4))+ 1 / length_m12;
+}
+
+
+double calculate_angle(double r1[nbr_dim], double r2[nbr_dim]){
+  double norm_r1, norm_r2, prod, theta;
+
+  norm_r1 = sqrt(r1[0]*r1[0] + r1[1]*r1[1] + r1[2]*r1[2]);
+  norm_r2 = sqrt(r2[0]*r2[0] + r2[1]*r2[1] + r2[2]*r2[2]);
+
+  prod = (r1[0]*r2[0] + r1[1]*r2[1] + r1[2]*r2[2]);
+
+  theta = arccos(prod / (norm_r1 * norm_r2));
+
+  return theta;
 }
 
 
