@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <math.h>
 #include <gsl/gsl_rng.h>
+#include <time.h>
 
 #define PI 3.141592653589
 #define nbr_points 10000000
@@ -27,16 +27,23 @@ int main(){
   double I_value;
   double variance;
   double error;
-  double delta = 2.0;
+  double delta = 2.5;
   size_t nbr_switching_state = 0;
+
+  const gsl_rng_type *T; /* static info about rngs */
+  gsl_rng *q; /* rng instance */
+  gsl_rng_env_setup(); /* setup the rngs */
+  T = gsl_rng_default; /* specify default rng */
+  q = gsl_rng_alloc(T); /* allocate default rng */
+  gsl_rng_set(q, time(NULL)); /* Initialize rng */
 
 
   double *function_val = malloc(sizeof(double) * nbr_points);
 
   //initialize random coordinates
-  srand(time(NULL));
   for(j = 0; j < nbr_dim; j++){
-    rand_nbr = (double) rand() / (double) RAND_MAX - 0.5;
+    rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
+    rand_nbr -= 0.5;
     n[j] = rand_nbr;
   }
 
@@ -46,14 +53,14 @@ int main(){
   // Main loop
   for(i = 0; i < nbr_points; i++){
     for(j = 0; j < nbr_dim; j++){
-      rand_nbr = (double) rand() / (double) RAND_MAX;
+      rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
       n[j] = m[j] + delta*(rand_nbr - 0.5);
     }
 
     p_m = calculate_weight(m);
     p_n = calculate_weight(n);
 
-    rand_nbr = (double) rand() / (double) RAND_MAX;
+    rand_nbr = gsl_rng_uniform(q);
     if((p_n / p_m) > rand_nbr){
       m[0] = n[0];
       m[1] = n[1];
@@ -78,6 +85,9 @@ int main(){
   }
   variance = sum_tmp / nbr_points - I_value * I_value;
   error = sqrt(variance / nbr_points);
+
+  // Deallocate rng
+  gsl_rng_free (q);
 
   printf("Integral: %e, with error(+-): %e\n", I_value, error);
   printf("nbr_switching_state: %lf\n", (double) nbr_switching_state / nbr_points);
