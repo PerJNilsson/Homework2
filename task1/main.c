@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 100
+#define nbr_iterations 10000
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -107,6 +107,8 @@ int main(){
   }
   I_value = sum_tmp / nbr_iterations;
 
+
+  printf("%f %d\n", I_value, nbr_iterations);
   // Calculate variance
   sum_tmp = 0;
   for(i = 0; i < nbr_iterations; i++){
