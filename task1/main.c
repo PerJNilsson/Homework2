@@ -46,7 +46,7 @@ int main(){
 
   double *energy = malloc(sizeof(double) * nbr_iterations);
   double *electron1_distance = malloc(sizeof(double) * nbr_iterations);
-  double *electron2_distane = malloc(sizeof(double) * nbr_iterations);
+  double *electron2_distance = malloc(sizeof(double) * nbr_iterations);
   double *theta = malloc(sizeof(double) * nbr_iterations);
 
   //initialize random coordinates
@@ -60,11 +60,10 @@ int main(){
     n2[j] = rand_nbr;
   }
 
-  p_m = calculate_weight(m);
-
+  p_m = calculate_probability(m1, m2, alpha);
   sum_tmp = 0;
   // Main loop
-  for(i = 0; i < nbr_points; i++){
+  for(i = 0; i < nbr_iterations; i++){
 
     for(j = 0; j < nbr_dim; j++){
       rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
@@ -92,7 +91,7 @@ int main(){
     } else {
       energy[i] = local_energy(m1, m2, alpha);
     }
-
+  
     //save electron distance from origo
     electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
     electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
@@ -102,32 +101,27 @@ int main(){
 
   }// End main loop
 
+ 
   sum_tmp = 0;
-  for(i = 0; i < nbr_points; i++){
-    sum_tmp += function_val[i];
+  for(i = 0; i < nbr_iterations; i++){
+    sum_tmp += energy[i];
   }
-  I_value = sum_tmp / nbr_points;
+  I_value = sum_tmp / nbr_iterations;
 
   // Calculate variance
   sum_tmp = 0;
-  for(i = 0; i < nbr_points; i++){
-    sum_tmp += function_val[i] * function_val[i];
+  for(i = 0; i < nbr_iterations; i++){
+    sum_tmp += energy[i] * energy[i];
   }
-  variance = sum_tmp / nbr_points - I_value * I_value;
-  error = sqrt(variance / nbr_points);
-
-  // Deallocate rng
-  gsl_rng_free (q);
-
-  printf("Integral: %e, with error(+-): %e\n", I_value, error);
-  printf("nbr_switching_state: %lf\n", (double) nbr_switching_state / nbr_points);
-
+  variance = sum_tmp / nbr_iterations - I_value * I_value;
+  error = sqrt(variance / nbr_iterations);
+  
   FILE *fp;
 
   //Write to file, electron distance from origo data
   fp = fopen("electron_dist.dat","w");
   for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%e \t %e", electron1_distance[i], electron2_distane[i]);
+    fprintf(fp, "%e \t %e", electron1_distance[i], electron2_distance[i]);
     fprintf(fp, "\n");
   }
   fclose(fp);
@@ -139,7 +133,11 @@ int main(){
     fprintf(fp, "\n");
   }
   fclose(fp);
-
+  
+  printf("We are here now\n");
+  // Deallocate rng
+  //gsl_rng_free (q);
+  
 }//End MAIN
 
 
@@ -193,7 +191,7 @@ double calculate_angle(double r1[nbr_dim], double r2[nbr_dim]){
 
   prod = (r1[0]*r2[0] + r1[1]*r2[1] + r1[2]*r2[2]);
 
-  theta = arccos(prod / (norm_r1 * norm_r2));
+  theta = acos(prod / (norm_r1 * norm_r2));
 
   return theta;
 }
