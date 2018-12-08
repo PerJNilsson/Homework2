@@ -15,7 +15,7 @@ data = np.loadtxt(filename)
 plt.figure(figsize=(8,6))
 #h = []
 
-# plot histogram
+# plot histogram, data[:,0]=electron1, data[:1]=electron2
 plt.hist(data[:,0], bins=50, density=True, alpha=0.7, rwidth=0.85, label='simulated value')
 
 # plot theoretical curve
@@ -32,7 +32,6 @@ Z = 27/16
 for i in range(0,nbr_points):
     p[i] = Z**3*4*r[i]*r[i]*np.exp(-2*Z*r[i])
 plt.plot(r, p, '--', color='black',linewidth=2, label=r'$\rho(r)=Z^34r^2e^{-2Zr}$' + ' with Z = 27/16')
-
 
 
 # labels

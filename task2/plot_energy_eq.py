@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import numpy as np
 
 # input file
-filename = 'electron_dist.dat'
+filename = 'energy_data_eq.dat'
 
 # import data
 data = np.loadtxt(filename)
@@ -15,28 +15,25 @@ cols = np.size(data,1)
 # initial size of plot window
 plt.figure(figsize=(8,6))
 
-x = np.linspace(0, len(data), len(data))
 # plot
-
-plt.plot(x, data[:,0],'b-', label='electron 1')
-plt.plot(x, data[:,1],'r-', label='electron 2')
+plt.plot(data[:,0], data[:,1],'-', label='energy')
 
 
 # labels
-plt.xlabel('Time / [ms]', fontsize=20)
-plt.ylabel('Velocity / [mm/s]', fontsize=20)
+plt.xlabel('Iterations / []', fontsize=20)
+plt.ylabel('Energy / []', fontsize=20)
 
 # legend
 plt.legend(loc='upper right')
 leg = plt.gca().get_legend()
 ltext  = leg.get_texts()
-plt.setp(ltext, fontsize=12) 
+plt.setp(ltext, fontsize=12)
 
 # axis limits
 # tick fontsize
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
-plt.title('Velocities of particles')
+plt.title('Energy during iterations')
 
 # display the plot
 
