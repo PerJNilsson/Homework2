@@ -22,13 +22,24 @@ plt.hist(data, bins=50, density=True, alpha=0.7, rwidth=0.85, label=r'$\theta$')
 plt.xlabel('Radians', fontsize=20)
 plt.ylabel(r'$acos(\frac{r_1r_2}{|r_1||r_2|})$', fontsize=20)
 
+x_vec = []
+prob_fun = []
+
+for i in range(0, len(data)):
+    x_vec.append(i*np.pi / len(data))
+    prob_fun.append(0.5*np.sin(x_vec[i]))
+
+plt.plot(x_vec, prob_fun, linewidth = 2, label=r'$0.5*sin(\theta)$')
+
+
+
 # legend
 plt.legend(loc='upper left')
 leg = plt.gca().get_legend()
 ltext  = leg.get_texts()
-plt.setp(ltext, fontsize=12) 
+plt.setp(ltext, fontsize=12)
 
-# axis limits
+
 # tick fontsize
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
@@ -37,23 +48,6 @@ plt.title('Historgram of '+ r'$acos(\frac{r_1r_2}{|r_1||r_2|})$')
 # display the plot
 
 """
-timestep = 1E-7
-radius = (2.79*1E-6)/2.0;
-density = 2.65 * 1E3;
-m = 4.0*math.pi*radius*radius*radius *density*3.0; # assuming particle is sphere-ish
-temperature = 297;
-tau = 48.5*1E-6; # 48.5 | 147.3;
-eta = 1.0/tau;
-c_0 = math.exp(-2*eta*timestep);
-c_1 = math.exp(-eta*timestep);
-
-k_b = 1.380*1E-23;
-v0 = 2*1E-3
-
-const_part = m /(k_b*temperature*(1.0-c_0))
-exp_part = -m*((0-v0*c_1)**2)/(2.0*k_b*temperature*(1.0-c_0))
-f = (math.sqrt(const_part)*math.exp(exp_part))
-
 (mu4, sigma4)  = norm.fit(data[:,3])
 (mu3, sigma3)  = norm.fit(data[:,2])
 (mu2, sigma2)  = norm.fit(data[:,1])

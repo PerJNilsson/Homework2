@@ -14,3 +14,4 @@ $(PROGRAM): $(OBJECTS)
 clean:
 		rm -f *.o
 		touch *.c
+		rm -rf *.dat
