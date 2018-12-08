@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 100000
+#define nbr_iterations 10000000
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -38,9 +38,9 @@ int main(){
   double delta = 0.975;
   double alpha = 0.1;
   int equi_phase = 1500;
-  size_t different_alphas = 100;
+  size_t different_alphas = 20;
   size_t nbr_switching_state = 0;
-  size_t iterations_per_alpha = 100;
+  size_t iterations_per_alpha = 5;
 
   const gsl_rng_type *T; /* static info about rngs */
   gsl_rng *q; /* rng instance */
@@ -55,8 +55,9 @@ int main(){
   double *electron2_distance = malloc(sizeof(double) * nbr_iterations);
   double *theta = malloc(sizeof(double) * nbr_iterations);
   double * alpha_energy_values = malloc(sizeof(double)*different_alphas);
-
+  double * alpha_energy_std = malloc(sizeof(double)*different_alphas);
   double * alpha_values = malloc(sizeof(double)*different_alphas);
+  double * statistical_s = malloc(sizeof(double)*different_alphas);
 
   for (size_t jx=0; jx<different_alphas; jx++){
     alpha = 0.05 + jx*0.20 / (different_alphas-1.0);
@@ -146,18 +147,20 @@ int main(){
         sum_tmp += energy[i];
       }
       I_value = sum_tmp / nbr_iterations;
-      
 
       alpha_energy_values[jx] += I_value / iterations_per_alpha;
+      alpha_energy_std[jx] += I_value*I_value / iterations_per_alpha;
       //printf("Avg energy =%f \n", I_value);
       //printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
     }
+    statistical_s[jx] = auto_corr_fun(energy, nbr_iterations, 20);
   }
   
   FILE* alpha_energy;
   alpha_energy = fopen("alpha_energies.dat", "w");
   for (i=0; i<different_alphas; i++) {
-    fprintf(alpha_energy, "%f \t %f\n", alpha_values[i], alpha_energy_values[i]);
+    alpha_energy_std[i] = sqrt((alpha_energy_std[i] - alpha_energy_values[i]*alpha_energy_values[i]));
+    fprintf(alpha_energy, "%f \t %f \t %f\n", alpha_values[i], alpha_energy_values[i], alpha_energy_std[i]);
     }
   fclose(alpha_energy);
 

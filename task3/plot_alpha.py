@@ -4,6 +4,7 @@
 # imports
 import matplotlib.pylab as plt
 import numpy as np
+#plt.style.use('seaborn-whitegrid')
 
 # input file
 filename = 'alpha_energies.dat'
@@ -17,8 +18,8 @@ plt.figure(figsize=(8,6))
 
 x = np.linspace(0, len(data), len(data))
 # plot
-
-plt.plot(data[:,0], data[:,1],'b-')
+xerr = 0
+plt.errorbar(data[:,0], data[:,1], yerr=data[:,2],fmt='o', ecolor='r', capthick=2, label='Var[I] = s Var[f] / N')
 
 
 # labels
