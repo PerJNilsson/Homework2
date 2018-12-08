@@ -38,8 +38,9 @@ int main(){
   double delta = 0.975;
   double alpha = 0.1;
   int equi_phase = 1500;
-
+  size_t different_alphas = 50;
   size_t nbr_switching_state = 0;
+  size_t iterations_per_alpha = 50;
 
   const gsl_rng_type *T; /* static info about rngs */
   gsl_rng *q; /* rng instance */
@@ -53,92 +54,112 @@ int main(){
   double *electron1_distance = malloc(sizeof(double) * nbr_iterations);
   double *electron2_distance = malloc(sizeof(double) * nbr_iterations);
   double *theta = malloc(sizeof(double) * nbr_iterations);
+  double * alpha_energy_values = malloc(sizeof(double)*different_alphas);
 
-  //initialize random coordinates
-  for(j = 0; j < nbr_dim; j++){
-    rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
-    rand_nbr -= 0.5;
-    m1[j] = 50;
+  double * alpha_values = malloc(sizeof(double)*different_alphas);
 
-    rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
-    rand_nbr -= 0.5;
-    m2[j] = 50;
-  }
+  for (size_t kx=0; kx<iterations_per_alpha; kx++){
+  for (size_t jx =0; jx<different_alphas; jx++){
+    alpha = 0.05 + jx*0.20 / different_alphas;
+    nbr_switching_state = 0;
 
-  p_m = calculate_probability(m1, m2, alpha);
-  sum_tmp = 0;
-
-  // Equilibrium phase
-  for (int ix=0; ix<equi_phase; ix++){
+    //initialize random coordinates
     for(j = 0; j < nbr_dim; j++){
-      rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
-      n1[j] = m1[j] + delta*(rand_nbr - 0.5);
-      rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
-      n2[j] = m2[j] + delta*(rand_nbr - 0.5);
-    }
-    p_m = calculate_probability(m1,m2, alpha);
-    p_n = calculate_probability(n1,n2, alpha);
+      rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
+      rand_nbr -= 0.5;
+      m1[j] = 50;
 
-    rand_nbr = gsl_rng_uniform(q);
-    if((p_n / p_m) > rand_nbr){
-      m1[0] = n1[0];
-      m1[1] = n1[1];
-      m1[2] = n1[2];
-
-      m2[0] = n2[0];
-      m2[1] = n2[1];
-      m2[2] = n2[2];
+      rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
+      rand_nbr -= 0.5;
+      m2[j] = 50;
     }
+
+    p_m = calculate_probability(m1, m2, alpha);
+    sum_tmp = 0;
+
+    // Equilibrium phase
+    for (int ix=0; ix<equi_phase; ix++){
+      for(j = 0; j < nbr_dim; j++){
+        rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
+        n1[j] = m1[j] + delta*(rand_nbr - 0.5);
+        rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
+        n2[j] = m2[j] + delta*(rand_nbr - 0.5);
+      }
+      p_m = calculate_probability(m1,m2, alpha);
+      p_n = calculate_probability(n1,n2, alpha);
+      
+      rand_nbr = gsl_rng_uniform(q);
+      if((p_n / p_m) > rand_nbr){
+        m1[0] = n1[0];
+        m1[1] = n1[1];
+        m1[2] = n1[2];
+        
+        m2[0] = n2[0];
+        m2[1] = n2[1];
+        m2[2] = n2[2];
+      }
+    }
+    
+    // Main loop
+    for(i = 0; i < nbr_iterations; i++){
+      
+      for(j = 0; j < nbr_dim; j++){
+        rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
+        n1[j] = m1[j] + delta*(rand_nbr - 0.5);
+        rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
+        n2[j] = m2[j] + delta*(rand_nbr - 0.5);
+      }
+      
+      p_m = calculate_probability(m1,m2, alpha);
+      p_n = calculate_probability(n1,n2, alpha);
+      
+      rand_nbr = gsl_rng_uniform(q);
+      if((p_n / p_m) > rand_nbr){
+        m1[0] = n1[0];
+        m1[1] = n1[1];
+        m1[2] = n1[2];
+        
+        m2[0] = n2[0];
+        m2[1] = n2[1];
+        m2[2] = n2[2];
+        
+        
+        energy[i] = local_energy(m1, m2, alpha);
+        nbr_switching_state++;
+      } else {
+        energy[i] = local_energy(m1, m2, alpha);
+        
+      }
+      //save electron distance from origo
+      electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
+      electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
+      
+      //save angle
+      theta[i] = calculate_angle(m1,m2);
+      
+    }// End main loop
+
+    sum_tmp = 0;
+    for(i = 0; i < nbr_iterations; i++){
+      sum_tmp += energy[i];
+    }
+    I_value = sum_tmp / nbr_iterations;
+
+    alpha_values[jx] = alpha;
+    alpha_energy_values[jx] = I_value;
+    //printf("alpha=%f\n", alpha);
+    //printf("Avg energy =%f \n", I_value);
+    //printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
+  }
   }
 
-  // Main loop
-  for(i = 0; i < nbr_iterations; i++){
-
-    for(j = 0; j < nbr_dim; j++){
-      rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
-      n1[j] = m1[j] + delta*(rand_nbr - 0.5);
-      rand_nbr = gsl_rng_uniform(q); /*generate random number 0-1 (repeatable)*/
-      n2[j] = m2[j] + delta*(rand_nbr - 0.5);
+  FILE* alpha_energy;
+  alpha_energy = fopen("alpha_energies.dat", "w");
+  for (i=0; i<different_alphas; i++) {
+    fprintf(alpha_energy, "%f \t %f\n", alpha_values[i], alpha_energy_values[i]);
     }
+  fclose(alpha_energy);
 
-    p_m = calculate_probability(m1,m2, alpha);
-    p_n = calculate_probability(n1,n2, alpha);
-
-    rand_nbr = gsl_rng_uniform(q);
-    if((p_n / p_m) > rand_nbr){
-      m1[0] = n1[0];
-      m1[1] = n1[1];
-      m1[2] = n1[2];
-
-      m2[0] = n2[0];
-      m2[1] = n2[1];
-      m2[2] = n2[2];
-
-
-      energy[i] = local_energy(m1, m2, alpha);
-      nbr_switching_state++;
-    } else {
-      energy[i] = local_energy(m1, m2, alpha);
-
-    }
-    //save electron distance from origo
-    electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
-    electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
-
-    //save angle
-    theta[i] = calculate_angle(m1,m2);
-
-  }// End main loop
-
-  printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
-  sum_tmp = 0;
-  for(i = 0; i < nbr_iterations; i++){
-    sum_tmp += energy[i];
-  }
-  I_value = sum_tmp / nbr_iterations;
-
-
-  printf("Avg energy =%f \nNumber of iterations=%d\n", I_value, nbr_iterations);
   // Calculate variance
   sum_tmp = 0;
   for(i = 0; i < nbr_iterations; i++){
@@ -195,7 +216,6 @@ int main(){
     fprintf(fp, "\n");
   }
   fclose(fp);
-
 }//End MAIN
 
 
