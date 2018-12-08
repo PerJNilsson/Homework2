@@ -16,6 +16,10 @@ double local_energy (double[nbr_dim], double[nbr_dim], double);
 double pow(double x, double y);
 double calculate_angle(double[nbr_dim], double[nbr_dim]);
 
+int auto_corr_fun(double * N, int nbr_of_lines, int k);
+double block_average(double* data, int nbr_of_lines, int B);
+void center_data(double* N, int nbr_of_lines);
+
 
 /* Main Program */
 int main(){
@@ -135,6 +139,29 @@ int main(){
   }
   fclose(fp);
 
+
+  // Checking statistical inefficiency
+
+
+  int s_corr;
+  int k= 400;
+  int step = 10;
+  int end = nbr_iterations/2;
+  int length_array = end / step;
+  double s_block[length_array];
+
+  for (int B = 1; B<length_array+1; B++){
+    s_block[B-1] = block_average(energy, nbr_iterations, B*step);
+  }
+  int s_acf = auto_corr_fun(energy, nbr_iterations, k);
+
+  double s_block_avg_avg = 0;
+  int start_avg = length_array/2;
+  for (i=start_avg; i<length_array; i++){
+    s_block_avg_avg += s_block[i] / (double)(length_array-start_avg);
+  }
+
+  printf("s_corr = %d\ns_block =%f\n", s_acf,s_block_avg_avg);
   // Deallocate rng
   gsl_rng_free (q);
 
@@ -197,6 +224,83 @@ double calculate_angle(double r1[nbr_dim], double r2[nbr_dim]){
   return theta;
 }
 
+
+
+int auto_corr_fun(double* data, int nbr_of_lines, int k){
+  center_data(data, nbr_of_lines);
+  double mean_ik[k];
+  double phi[k];
+  int good_guess=0;
+  double s = exp(-2.0);
+  for (int i=0; i<k; i++){
+    mean_ik[i]=0;
+    phi[i]=0;
+  }
+  double mean_squared = 0;
+  FILE * valuessave;
+  for (int i = 0; i<k; i++) {
+    for (int j=0; j<nbr_of_lines-i; j++){
+      mean_ik[i] += data[j]*data[i+j]/(double)(nbr_of_lines-i);
+    }
+  }
+  for (int i=0; i<nbr_of_lines; i++){
+    mean_squared += data[i]*data[i]/(double) nbr_of_lines;
+  }
+  valuessave = fopen("values.dat", "w");
+  for (int i=0; i<k; i++){
+    phi[i] = (mean_ik[i]) / (mean_squared);
+    fprintf(valuessave, "%d \t %f\n", i, phi[i]);
+    if(sqrt((phi[good_guess]-s)*(phi[good_guess]-s))> sqrt((phi[i]-s)*(phi[i]-s))){
+      good_guess = i;
+    }
+  }
+  fclose(valuessave);
+  return good_guess;
+}
+
+double block_average(double* data, int nbr_of_lines, int B){
+  center_data(data, nbr_of_lines);
+  double good_guess_B;
+  int j;
+  j = nbr_of_lines / B;
+  double F[j];
+  for (int i=0; i<j; i++){
+    F[i] = 0;
+  }
+
+  for (int i=0; i<j; i++){
+    for (int k=0; k<B; k++){
+      F[i] += data[k+i*B]/(double)B;
+    }
+  }
+  double variance_F = 0;
+  double mean_F = 0;
+  for (int i=0; i<j; i++){
+    variance_F += F[i]*F[i]/(double)j;
+    mean_F += F[i]/(double)j;
+  }
+  variance_F = variance_F - mean_F*mean_F;
+
+  double variance_f = 0;
+  for (int i=0; i<nbr_of_lines; i++){
+    variance_f += data[i]*data[i];
+  }
+  variance_f = variance_f / (double)nbr_of_lines;
+  good_guess_B = (double)B * variance_F / variance_f;
+  return good_guess_B;
+}
+
+
+void center_data(double*data, int nbr_of_lines){
+  double main_mean=0;
+  for (int i=0; i<nbr_of_lines; i++){
+    main_mean += data[i];
+  }
+  main_mean = main_mean / (double)nbr_of_lines;
+  for (int i=0; i<nbr_of_lines; i++){
+    data[i]=data[i]-main_mean;
+  }
+}
 
 
 // // Setup random number generator
