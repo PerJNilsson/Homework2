@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import numpy as np
 
 # input file
-filename = 'velocities.dat'
+filename = 'electron_dist.dat'
 
 # import data
 data = np.loadtxt(filename)
@@ -15,12 +15,12 @@ cols = np.size(data,1)
 # initial size of plot window
 plt.figure(figsize=(8,6))
 
+x = np.linspace(0, len(data), len(data))
 # plot
-for i in range(1, cols-3):
-    plt.plot(data[:,0], data[:,i],'-', label='Trajectory '+str(i), linewidth=0.5)
-plt.plot(data[:,0], data[:,cols-3],'b-', label='$\mu_v(t)$')
-plt.plot(data[:,0], data[:,cols-2],'r-', label='$\mu_v(t) \pm \sigma_v(t)$', Linewidth=1.5)
-plt.plot(data[:,0], data[:,cols-1],'r-')#, label='$\mu + \sigma$')
+
+plt.plot(x, data[:,0],'b-', label='electron 1')
+plt.plot(x, data[:,1],'r-', label='electron 2')
+
 
 # labels
 plt.xlabel('Time / [ms]', fontsize=20)

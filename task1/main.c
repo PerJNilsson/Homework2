@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 10000
+#define nbr_iterations 1000000
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -31,7 +31,7 @@ int main(){
   double I_value;
   double variance;
   double error;
-  double delta = 2.5;
+  double delta = 1;
   double alpha = 0.1;
 
   size_t nbr_switching_state = 0;
@@ -100,7 +100,7 @@ int main(){
 
   }// End main loop
 
- 
+  printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
   sum_tmp = 0;
   for(i = 0; i < nbr_iterations; i++){
     sum_tmp += energy[i];
@@ -108,7 +108,7 @@ int main(){
   I_value = sum_tmp / nbr_iterations;
 
 
-  printf("%f %d\n", I_value, nbr_iterations);
+  printf("Avg energy =%f \nNumber of iterations=%d\n", I_value, nbr_iterations);
   // Calculate variance
   sum_tmp = 0;
   for(i = 0; i < nbr_iterations; i++){
@@ -171,13 +171,13 @@ double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
   double length_m12;
   double a_r12;
 
-  length_m12 = sqrt((m1[0]-m2[0]+m1[1]-m2[1]+m1[2]-m2[2])*(m1[0]-m2[0]+m1[1]-m2[1]+m1[2]-m2[2]));
+  length_m12 = sqrt((m1[0]-m2[0])*(m1[0]-m2[0]) + (m1[1]-m2[1])*(m1[1]-m2[1]) + (m1[2]-m2[2])*(m1[2]-m2[2]));
   length_m1 = sqrt((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
   length_m2 = sqrt((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
 
   cross_mult = m1[0]*m2[0]+m1[1]*m2[1]+m1[2]*m2[2];
-  m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]))*((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
-  m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]))*((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
+  m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
+  m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
   a_r12 = (1+alpha*length_m12);
 
   E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 1.0/ (length_m12*pow(a_r12, 4))+ 1.0 / length_m12;
