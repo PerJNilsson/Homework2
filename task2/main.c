@@ -121,28 +121,8 @@ int main(){
   variance = sum_tmp / nbr_iterations - I_value * I_value;
   error = sqrt(variance / nbr_iterations);
 
-  FILE *fp;
-
-  //Write to file, electron distance from origo data
-  fp = fopen("electron_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%e \t %e", electron1_distance[i], electron2_distance[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
-
-  //Write to file, theta distribution data
-  fp = fopen("theta_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%e", theta[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
-
 
   // Checking statistical inefficiency
-
-
   int s_corr;
   int k= 400;
   int step = 1;
@@ -162,8 +142,36 @@ int main(){
   }
 
   printf("s_corr = %d\ns_block =%f\n", s_acf,s_block_avg_avg);
+
+
   // Deallocate rng
   gsl_rng_free (q);
+
+  FILE *fp;
+
+  //Write to file, energy_data_eq
+  fp = fopen("electron_data_eq.dat","w");
+  for (i = 0; i < nbr_iterations; i++){
+    fprintf(fp, "%ld \t %e", i, energy[i]);
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
+
+  //Write to file, electron distance from origo data
+  fp = fopen("electron_dist.dat","w");
+  for (i = 0; i < nbr_iterations; i++){
+    fprintf(fp, "%e \t %e", electron1_distance[i], electron2_distance[i]);
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
+
+  //Write to file, theta distribution data
+  fp = fopen("theta_dist.dat","w");
+  for (i = 0; i < nbr_iterations; i++){
+    fprintf(fp, "%e", theta[i]);
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
 
 }//End MAIN
 
