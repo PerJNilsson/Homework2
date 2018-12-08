@@ -145,7 +145,7 @@ int main(){
 
   int s_corr;
   int k= 400;
-  int step = 10;
+  int step = 1;
   int end = nbr_iterations/2;
   int length_array = end / step;
   double s_block[length_array];
@@ -156,7 +156,7 @@ int main(){
   int s_acf = auto_corr_fun(energy, nbr_iterations, k);
 
   double s_block_avg_avg = 0;
-  int start_avg = length_array/2;
+  int start_avg = length_array/3;
   for (i=start_avg; i<length_array; i++){
     s_block_avg_avg += s_block[i] / (double)(length_array-start_avg);
   }
@@ -223,7 +223,6 @@ double calculate_angle(double r1[nbr_dim], double r2[nbr_dim]){
 
   return theta;
 }
-
 
 
 int auto_corr_fun(double* data, int nbr_of_lines, int k){
