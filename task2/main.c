@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 10000
+#define nbr_iterations 1000000
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -124,9 +124,9 @@ int main(){
 
   // Checking statistical inefficiency
   int s_corr;
-  int k= 400;
+  int k= 20;
   int step = 1;
-  int end = nbr_iterations/2;
+  int end = nbr_iterations/2000;
   int length_array = end / step;
   double s_block[length_array];
 
@@ -150,7 +150,7 @@ int main(){
   FILE *fp;
 
   //Write to file, energy_data_eq
-  fp = fopen("electron_data_eq.dat","w");
+  fp = fopen("energy_data_eq.dat","w");
   for (i = 0; i < nbr_iterations; i++){
     fprintf(fp, "%ld \t %e", i, energy[i]);
     fprintf(fp, "\n");
