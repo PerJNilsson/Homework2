@@ -35,7 +35,7 @@ int main(){
   double I_value;
   double variance;
   double error;
-  double delta = 1;
+  double delta = 0.975;
   double alpha = 0.1;
 
   size_t nbr_switching_state = 0;
@@ -57,15 +57,16 @@ int main(){
   for(j = 0; j < nbr_dim; j++){
     rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
     rand_nbr -= 0.5;
-    m1[j] = rand_nbr;
+    m1[j] = 5;
 
     rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
     rand_nbr -= 0.5;
-    m2[j] = rand_nbr;
+    m2[j] = 5;
   }
 
   p_m = calculate_probability(m1, m2, alpha);
   sum_tmp = 0;
+  double tmp_ener = 0;
   // Main loop
   for(i = 0; i < nbr_iterations; i++){
 
@@ -94,6 +95,7 @@ int main(){
       nbr_switching_state++;
     } else {
       energy[i] = local_energy(m1, m2, alpha);
+
     }
     //save electron distance from origo
     electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
@@ -213,9 +215,9 @@ double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
   cross_mult = m1[0]*m2[0]+m1[1]*m2[1]+m1[2]*m2[2];
   m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
   m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
-  a_r12 = (1+alpha*length_m12);
+  a_r12 = (1.0+alpha*length_m12);
 
-  E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 1.0/ (length_m12*pow(a_r12, 4))+ 1.0 / length_m12;
+  E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 0.25/(pow(a_r12, 4))+ 1.0 / length_m12;
 }
 
 

@@ -178,9 +178,9 @@ double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
   cross_mult = m1[0]*m2[0]+m1[1]*m2[1]+m1[2]*m2[2];
   m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
   m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
-  a_r12 = (1+alpha*length_m12);
+  a_r12 = (1.0+alpha*length_m12);
 
-  E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 1.0/ (length_m12*pow(a_r12, 4))+ 1.0 / length_m12;
+  E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 0.25/ (pow(a_r12, 4))+ 1.0 / length_m12;
 }
 
 
