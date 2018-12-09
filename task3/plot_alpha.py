@@ -19,7 +19,7 @@ plt.figure(figsize=(8,6))
 x = np.linspace(0, len(data), len(data))
 # plot
 xerr = 0
-plt.errorbar(data[:,0], data[:,1], yerr=data[:,2],fmt='o', ecolor='r', capthick=2, label='Var[I] = s Var[f] / N')
+plt.errorbar(data[:,0], data[:,1], yerr=data[:,2],fmt='o', ecolor='r', capthick=2, label='error bars = 1 std')
 
 
 # labels

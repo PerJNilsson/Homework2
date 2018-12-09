@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 10000000
+#define nbr_iterations 1000000
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -263,6 +263,8 @@ double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
   a_r12 = (1.0+alpha*length_m12);
 
   E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 0.25/(pow(a_r12, 4))+ 1.0 / length_m12;
+
+  return E_l;
 }
 
 
