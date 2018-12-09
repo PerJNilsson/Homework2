@@ -21,6 +21,7 @@ double block_average(double* data, int nbr_of_lines, int B);
 void center_data(double* N, int nbr_of_lines);
 
 
+double gradient_E_alpha(double * energy, double m1[], double m2[], double alpha, int length_E);
 /* Main Program */
 int main(){
 
@@ -38,11 +39,11 @@ int main(){
   double delta = 0.975;
   double alpha = 0.1;
   int equi_phase = 1500;
-  size_t different_alphas = 20;
+  size_t different_alphas = 100;
   size_t nbr_switching_state = 0;
-  size_t iterations_per_alpha = 100;
+  size_t iterations_per_alpha = 10;
   double gamma_alpha;
-  double beta_alpha = 5.0; // 0.5 < beta <= 1.0
+  double beta_alpha = 0.70; // 0.5 < beta <= 1.0
   double derivative_alpha;
 
   const gsl_rng_type *T; /* static info about rngs */
@@ -61,14 +62,20 @@ int main(){
 
   double * alpha_values = malloc(sizeof(double)*different_alphas);
 
+
   for (size_t jx=0; jx<different_alphas; jx++){
+
     //Update alpha
     if(jx < 2){
       alpha += 0.01;
     }
+
     else {
-      gamma_alpha = pow(jx,-beta_alpha);
+      gamma_alpha = pow(jx,-1.0*beta_alpha);
+      
+      double grad_E_a = gradient_E_alpha(energy, double m1[], double m2[], double alpha, int length_E)
       derivative_alpha = (alpha_energy_values[jx-1] - alpha_energy_values[jx-2]) / (alpha_values[jx-1] - alpha_values[jx-2]);
+
       alpha = alpha_values[jx-1] - gamma_alpha*derivative_alpha;
     }
     alpha_values[jx] = alpha;
@@ -359,6 +366,35 @@ void center_data(double*data, int nbr_of_lines){
   }
 }
 
+double gradient_E_alpha(double * energy, double m1[], double m2[], double alpha, int length_E){
+  double ln_wavefun; // Do we need planty of values for this one?
+  double grad_E_alpha;
+
+  double length_m12 = sqrt((m1[0]-m2[0])*(m1[0]-m2[0]) + (m1[1]-m2[1])*(m1[1]-m2[1]) + (m1[2]-m2[2])*(m1[2]-m2[2]));
+  double length_m1 = sqrt((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
+  double length_m2 = sqrt((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
+
+  double cross_mult = m1[0]*m2[0]+m1[1]*m2[1]+m1[2]*m2[2];
+  duble m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
+  double m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
+  double a_r12 = (1.0+alpha*length_m12);
+
+  ln_wavefun =- length_m12* length_m12 / pow(a_r12, 2);
+
+  double average_1 = 0;
+  double average_2a = 0;
+  double average_2b = 0;
+
+  for (int i=0; i<length_E; i++){
+    average_1 += energy[i]*ln_wavefun / (double) length_E;
+    average_2a += energu[i] / (double) length_E;
+    average_2b += ln_wavefun / (double) length_E;
+  }
+
+  grad_E_alpha = 2*(average_1-average_2a*average_2b);
+
+}
+
 
 // // Setup random number generator
 // double rand;
@@ -371,3 +407,4 @@ void center_data(double*data, int nbr_of_lines){
 // rand = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
 // // Deallocate rng
 // gsl_rng_free (q);
+
