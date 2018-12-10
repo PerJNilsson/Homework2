@@ -14,12 +14,12 @@ data = np.loadtxt(filename)
 cols = np.size(data,1)
 
 # initial size of plot window
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(8.5,6.2))
 
 x = np.linspace(0, len(data), len(data))
 # plot
 xerr = 0
-plt.errorbar(data[:,0], data[:,1], yerr=data[:,2],fmt='o', ecolor='r', capthick=2, label='error bars = 1 std')
+plt.errorbar(data[:,0], data[:,1], yerr=2*data[:,2],fmt='o', ecolor='r', capthick=2, label='error bars = 2'+r'$\sigma$')
 
 
 # labels
@@ -36,8 +36,8 @@ plt.setp(ltext, fontsize=12)
 # tick fontsize
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
-plt.title('Energy of Helium atom with respect to alpha')
-
+plt.title('Average energy of the Helium atom with respect to alpha')
+plt.savefig('3_alpha_min.png')
 # display the plot
 
 

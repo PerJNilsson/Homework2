@@ -21,7 +21,8 @@ double block_average(double* data, int nbr_of_lines, int B);
 void center_data(double* N, int nbr_of_lines);
 
 
-double gradient_E_alpha(double * energy, double m1[], double m2[], double alpha, int length_E);
+double gradient_E_alpha(double * energy, double m1[], double m2[], double alpha, int length_E, double * ln_wavefun);
+void get_ln_wavefun(double * ln_wavefun, double m1[], double m2[], double alpha, int iteration);
 /* Main Program */
 int main(){
 
@@ -39,12 +40,22 @@ int main(){
   double delta = 0.975;
   double alpha = 0.1;
   int equi_phase = 1500;
-  size_t different_alphas = 100;
+  size_t different_alphas= 1000;
   size_t nbr_switching_state = 0;
-  size_t iterations_per_alpha = 10;
+  size_t different_beta = 6;
   double gamma_alpha;
-  double beta_alpha = 0.70; // 0.5 < beta <= 1.0
-  double derivative_alpha;
+  double beta_alpha; // 0.5 < beta <= 1.0
+  double grad_E_a;
+  size_t iterations_per_alpha = 1;
+  double sum_avg_alpha = 0;
+
+  double save_beta[different_beta];
+
+  double * pointer_save = malloc(sizeof(double)*different_alphas*different_beta);
+  double ** matrix_save = malloc(sizeof(double)*different_alphas);
+  for(i=0, j=0; i<different_alphas; i++, j+=different_beta){
+    matrix_save[i] = pointer_save +j;
+  }
 
   const gsl_rng_type *T; /* static info about rngs */
   gsl_rng *q; /* rng instance */
@@ -61,31 +72,21 @@ int main(){
   double *alpha_energy_values = malloc(sizeof(double)*different_alphas);
 
   double * alpha_values = malloc(sizeof(double)*different_alphas);
+  double * ln_wavefun = malloc(sizeof(double)*nbr_iterations);
 
+  alpha = 0.25;
+  save_beta[0] = 0.51; save_beta[1] = 0.60; save_beta[2] =0.70; save_beta[3] = 0.80;save_beta[4] = 0.90; save_beta[5] = 1.0;
+  alpha_values[0] = alpha;
+  for (i=0;i<different_beta;i++){
+    matrix_save[0][i] = save_beta[i];
+  }
 
-  for (size_t jx=0; jx<different_alphas; jx++){
-
-    //Update alpha
-    if(jx < 2){
-      alpha += 0.01;
-    }
-
-    else {
-      gamma_alpha = pow(jx,-1.0*beta_alpha);
-      
-      double grad_E_a = gradient_E_alpha(energy, double m1[], double m2[], double alpha, int length_E)
-      derivative_alpha = (alpha_energy_values[jx-1] - alpha_energy_values[jx-2]) / (alpha_values[jx-1] - alpha_values[jx-2]);
-
-      alpha = alpha_values[jx-1] - gamma_alpha*derivative_alpha;
-    }
-    alpha_values[jx] = alpha;
-
-    printf("alpha=%f\n", alpha);
-    for (size_t kx =0; kx<iterations_per_alpha; kx++){
+  for (size_t kx=0; kx<different_beta; kx++) {
+    beta_alpha = save_beta[kx];
+    for (size_t jx=1; jx<different_alphas; jx++){
       nbr_switching_state = 0;
-
       //initialize random coordinates
-      for(j = 0; j < nbr_dim; j++){
+      for(j = 1; j < nbr_dim; j++){
         rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
         rand_nbr -= 0.5;
         m1[j] = 50;
@@ -120,7 +121,6 @@ int main(){
           m2[2] = n2[2];
         }
       }
-
       // Main loop
       for(i = 0; i < nbr_iterations; i++){
 
@@ -146,14 +146,19 @@ int main(){
 
 
           energy[i] = local_energy(m1, m2, alpha);
+          get_ln_wavefun(ln_wavefun, m1, m2, alpha, i);
           nbr_switching_state++;
         } else {
           energy[i] = local_energy(m1, m2, alpha);
-
+          get_ln_wavefun(ln_wavefun, m1, m2, alpha, i);
         }
 
-      }// End main loop
-
+      }// End main loop;
+      gamma_alpha = pow(jx,-1.0*beta_alpha);
+      grad_E_a = gradient_E_alpha(energy, m1, m2, alpha, nbr_iterations, ln_wavefun);
+      alpha = alpha_values[jx-1] - gamma_alpha*grad_E_a;
+      alpha_values[jx] = alpha;
+      matrix_save[jx][kx] = alpha;
       sum_tmp = 0;
       for(i = 0; i < nbr_iterations; i++){
         sum_tmp += energy[i];
@@ -161,11 +166,28 @@ int main(){
       I_value = sum_tmp / nbr_iterations;
 
 
+
       alpha_energy_values[jx] += I_value / iterations_per_alpha;
       //printf("Avg energy =%f \n", I_value);
       //printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
-    }//end iterations per alpha, j
   }//end different alphas, jx
+  printf("alpha=%f\n", alpha);
+  sum_avg_alpha +=alpha / (double)different_beta;
+  save_beta[kx] = beta_alpha;
+  } // end different betas
+  printf("Final alpha value=%f\n", sum_avg_alpha);
+  // Saving results to disk
+
+
+  FILE * save_beta_alpha;
+  save_beta_alpha = fopen("beta_alpha.dat", "w");
+  for (i=0; i<different_alphas; i++) {
+    for (j=0; j<different_beta; j++){
+      fprintf(save_beta_alpha, "%f \t", matrix_save[i][j]);
+    }
+    fprintf(save_beta_alpha, "\n");
+  }
+  fclose(save_beta_alpha);
 
   FILE* alpha_energy;
   alpha_energy = fopen("alpha_energies.dat", "w");
@@ -273,6 +295,8 @@ double local_energy (double m1[nbr_dim], double m2[nbr_dim], double alpha){
   a_r12 = (1.0+alpha*length_m12);
 
   E_l = -4.0 + (m1_squared / length_m1 - cross_mult / length_m1 - cross_mult / length_m2 + m2_squared / length_m2) / (length_m12*pow(a_r12,2)) - 1.0/ (length_m12*pow(a_r12,3)) - 0.25/(pow(a_r12, 4))+ 1.0 / length_m12;
+
+  return E_l;
 }
 
 
@@ -366,8 +390,7 @@ void center_data(double*data, int nbr_of_lines){
   }
 }
 
-double gradient_E_alpha(double * energy, double m1[], double m2[], double alpha, int length_E){
-  double ln_wavefun; // Do we need planty of values for this one?
+double gradient_E_alpha(double * energy, double m1[], double m2[], double alpha, int length_E, double* ln_wavefun){
   double grad_E_alpha;
 
   double length_m12 = sqrt((m1[0]-m2[0])*(m1[0]-m2[0]) + (m1[1]-m2[1])*(m1[1]-m2[1]) + (m1[2]-m2[2])*(m1[2]-m2[2]));
@@ -375,23 +398,30 @@ double gradient_E_alpha(double * energy, double m1[], double m2[], double alpha,
   double length_m2 = sqrt((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
 
   double cross_mult = m1[0]*m2[0]+m1[1]*m2[1]+m1[2]*m2[2];
-  duble m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
+  double m1_squared = ((m1[0]*m1[0])+(m1[1]*m1[1])+(m1[2]*m1[2]));
   double m2_squared = ((m2[0]*m2[0])+(m2[1]*m2[1])+(m2[2]*m2[2]));
   double a_r12 = (1.0+alpha*length_m12);
 
-  ln_wavefun =- length_m12* length_m12 / pow(a_r12, 2);
 
   double average_1 = 0;
   double average_2a = 0;
   double average_2b = 0;
 
   for (int i=0; i<length_E; i++){
-    average_1 += energy[i]*ln_wavefun / (double) length_E;
-    average_2a += energu[i] / (double) length_E;
-    average_2b += ln_wavefun / (double) length_E;
+    average_1 += energy[i]*ln_wavefun[i] / (double) length_E;
+    average_2a += energy[i] / (double) length_E;
+    average_2b += ln_wavefun[i] / (double) length_E;
   }
 
   grad_E_alpha = 2*(average_1-average_2a*average_2b);
+  return grad_E_alpha;
+}
+
+void get_ln_wavefun(double * ln_wavefun, double m1[], double m2[], double alpha, int iteration){
+
+  double length_m12 = sqrt((m1[0]-m2[0])*(m1[0]-m2[0]) + (m1[1]-m2[1])*(m1[1]-m2[1]) + (m1[2]-m2[2])*(m1[2]-m2[2]));
+
+  ln_wavefun[iteration] = -length_m12*length_m12 / pow(1.0+alpha*length_m12, 2) / 2;
 
 }
 

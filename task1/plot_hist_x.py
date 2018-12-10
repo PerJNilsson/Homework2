@@ -30,22 +30,22 @@ for i in range(0, len(data)):
 
 #plt.plot(x_vec, prob_fun, linewidth = 2, label=r'$0.5*sin(\theta)$')
 
-plt.hist(prob_fun, bins=50, density=True, alpha=0.7, rwidth=0.85, label='x')
+plt.hist(prob_fun, bins=50, density=True, alpha=0.7, rwidth=0.85)
 
 
 
 # legend
-plt.legend(loc='upper right')
-leg = plt.gca().get_legend()
-ltext  = leg.get_texts()
-plt.setp(ltext, fontsize=12)
+#plt.legend(loc='upper right')
+#leg = plt.gca().get_legend()
+#ltext  = leg.get_texts()
+#plt.setp(ltext, fontsize=12)
 
 
 # tick fontsize
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
-plt.title('Histogram of P(x), where x is $x=cos(\theta)$')
-
+plt.title('Histogram of P(x), where ' + r'$x=cos(\theta)$')
+plt.savefig('1_px.png')
 # display the plot
 
 """

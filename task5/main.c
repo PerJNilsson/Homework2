@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 1000000
+#define nbr_iterations 100000
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -25,7 +25,7 @@ void center_data(double* N, int nbr_of_lines);
 int main(){
 
   size_t i,j;
-  double sum_tmp;
+  double sum_tmp, sum_squared_tmp;
   double rand_nbr;
   double m1[nbr_dim] = {0};
   double m2[nbr_dim] = {0};
@@ -36,8 +36,8 @@ int main(){
   double variance;
   double error;
   double delta = 0.975;
-  double alpha = 0.1;
-  int equi_phase = 2000;
+  double alpha = 0.1434;
+  int equi_phase = 1500;
 
   size_t nbr_switching_state = 0;
 
@@ -54,15 +54,23 @@ int main(){
   double *electron2_distance = malloc(sizeof(double) * nbr_iterations);
   double *theta = malloc(sizeof(double) * nbr_iterations);
 
+  int nbr_average_runs = 100;
+  double avg_energy_all_runs = 0;
+  double variance_all_runs = 0;
+  double save_I_value[nbr_average_runs];
+
+  for (int kx=0; kx<nbr_average_runs; kx ++){
+
+
   //initialize random coordinates
   for(j = 0; j < nbr_dim; j++){
     rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
     rand_nbr -= 0.5;
-    m1[j] = 50;
+    m1[j] = 5;
 
     rand_nbr = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
     rand_nbr -= 0.5;
-    m2[j] = 50;
+    m2[j] = 5;
   }
 
   p_m = calculate_probability(m1, m2, alpha);
@@ -130,23 +138,40 @@ int main(){
 
   }// End main loop
 
-  printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
+  //printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
   sum_tmp = 0;
+  sum_squared_tmp = 0;
   for(i = 0; i < nbr_iterations; i++){
     sum_tmp += energy[i];
+    sum_squared_tmp += energy[i] * energy[i];
   }
   I_value = sum_tmp / nbr_iterations;
+  save_I_value[kx] = I_value;
+  variance = (sum_squared_tmp / nbr_iterations - I_value * I_value);
 
+  printf("Avg energy current run =%f +- %f \nNumber of iterations per run=%ld\n", I_value, sqrt(variance), nbr_iterations);
 
-  printf("Avg energy =%f \nNumber of iterations=%d\n", I_value, nbr_iterations);
+  avg_energy_all_runs += I_value / (double)nbr_average_runs;
+  variance_all_runs += variance / (double)pow(nbr_average_runs,2);
+
+  } // End the overall average loop
+
+  double sigma_all = sqrt(variance_all_runs);
+  double sigma_all2; 
+  printf("Avg energy all runs =%f +- %f \nNumber of iterations per run=%ld\n", avg_energy_all_runs,sigma_all, nbr_iterations);
   // Calculate variance
-  sum_tmp = 0;
-  for(i = 0; i < nbr_iterations; i++){
-    sum_tmp += energy[i] * energy[i];
+  double tmp_sum_var = 0;
+  double tmp_sum_avg = 0;
+  for (i=0; i<nbr_average_runs; i++){
+    tmp_sum_var += save_I_value[i]*save_I_value[i] / (double)nbr_average_runs;
+    tmp_sum_avg += save_I_value[i] / (double) nbr_average_runs;
   }
-  variance = sum_tmp / nbr_iterations - I_value * I_value;
+  sigma_all2 = sqrt(tmp_sum_var - tmp_sum_avg*tmp_sum_avg);
+
+  printf("only I: %f var of var: %f\n", sigma_all2, sigma_all);
   error = sqrt(variance / nbr_iterations);
 
+  /*
   FILE *fp;
 
   //Write to file, energy_data_eq
@@ -174,7 +199,7 @@ int main(){
   int s_acf = auto_corr_fun(energy, nbr_iterations, k);
 
   double s_block_avg_avg = 0;
-  int start_avg = max_block/5;
+  int start_avg = max_block/2;
   for (i=start_avg; i<max_block; i++){
     s_block_avg_avg += s_block[i] / (double)(max_block-start_avg);
   }
@@ -201,7 +226,7 @@ int main(){
     fprintf(fp, "\n");
   }
   fclose(fp);
-
+  */
 }//End MAIN
 
 

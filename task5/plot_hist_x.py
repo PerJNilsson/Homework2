@@ -6,37 +6,33 @@ import matplotlib.pylab as plt
 import numpy as np
 import math
 import matplotlib.mlab as mlab
-
+from scipy.stats import norm
 # input file
-filename = 'electron_dist.dat'
+filename = 'theta_dist.dat'
 # import data
 data = np.loadtxt(filename)
 # initial size of plot window
 plt.figure(figsize=(8,6))
-#h = []
-
-# plot histogram, data[:,0]=electron1, data[:1]=electron2
-plt.hist(data[:,0], bins=100, density=True, alpha=0.7, rwidth=0.85, label='simulated distances')
-
-# plot theoretical curve
-nbr_points = 100
-r = np.linspace(0, 4, nbr_points)
-p = np.zeros(nbr_points)
-
-Z = 2
-for i in range(0,nbr_points):
-    p[i] = Z**3*4*r[i]*r[i]*np.exp(-2*Z*r[i])
-plt.plot(r, p, '--', color='grey',linewidth=2, label=r'$\rho(r)=Z^34r^2e^{-2Zr}$' + ' with Z = 2')
-
-Z = 27/16
-for i in range(0,nbr_points):
-    p[i] = Z**3*4*r[i]*r[i]*np.exp(-2*Z*r[i])
-plt.plot(r, p, '--', color='black',linewidth=2, label=r'$\rho(r)=Z^34r^2e^{-2Zr}$' + ' with Z = 27/16')
+h = []
+# plot
 
 
 # labels
-plt.xlabel('distance [a.u.]', fontsize=20)
-plt.ylabel('Probability', fontsize=20)
+plt.xlabel(r'$x = cos(\theta)$', fontsize=20)
+plt.ylabel('P(x)', fontsize=20)
+
+x_vec = []
+prob_fun = []
+
+for i in range(0, len(data)):
+    x_vec.append(-1.0+i*2.0/ len(data))
+    prob_fun.append(np.cos(data[i]))
+
+#plt.plot(x_vec, prob_fun, linewidth = 2, label=r'$0.5*sin(\theta)$')
+
+plt.hist(prob_fun, bins=50, density=True, alpha=0.7, rwidth=0.85, label='x')
+
+
 
 # legend
 plt.legend(loc='upper right')
@@ -44,15 +40,20 @@ leg = plt.gca().get_legend()
 ltext  = leg.get_texts()
 plt.setp(ltext, fontsize=12)
 
-# axis limits
+
 # tick fontsize
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
-plt.title('Historgram of electron distance from nucleus')
-plt.savefig('1_electron_distance.png')
+plt.title('Histogram of P(x), where x is $x=cos(\theta)$')
+
 # display the plot
 
 """
+(mu4, sigma4)  = norm.fit(data[:,3])
+(mu3, sigma3)  = norm.fit(data[:,2])
+(mu2, sigma2)  = norm.fit(data[:,1])
+(mu1, sigma1)  = norm.fit(data[:,0])
+
 x = np.linspace(mu1 - 3*sigma1, mu1 + 3*sigma1, 100)
 plt.plot(x,mlab.normpdf(x, mu1, sigma1), '--', color='Black', linewidth=3)
 x1 = np.linspace(mu2 - 3*sigma2, mu2 + 3*sigma2, 100)

@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 1000000
+#define nbr_iterations 100000
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -38,7 +38,7 @@ int main(){
   double delta = 0.975;
   double alpha = 0.1;
   int equi_phase = 1500;
-  size_t different_alphas = 20;
+  size_t different_alphas = 40;
   size_t nbr_switching_state = 0;
   size_t iterations_per_alpha = 5;
 
@@ -153,7 +153,7 @@ int main(){
       //printf("Avg energy =%f \n", I_value);
       //printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
     }
-    statistical_s[jx] = auto_corr_fun(energy, nbr_iterations, 20);
+    //statistical_s[jx] = auto_corr_fun(energy, nbr_iterations, 20);
   }
   
   FILE* alpha_energy;
@@ -172,7 +172,7 @@ int main(){
   variance = sum_tmp / nbr_iterations - I_value * I_value;
   error = sqrt(variance / nbr_iterations);
 
-
+  /*
   // Checking statistical inefficiency
   int k= 20;
   int max_block = nbr_iterations/1000;
@@ -190,7 +190,7 @@ int main(){
   }
 
   printf("s_corr = %d\ns_block =%f\n", s_acf,s_block_avg_avg);
-
+  */
 
   // Deallocate rng
   gsl_rng_free (q);
