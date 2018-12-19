@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PI 3.141592653589
-#define nbr_iterations 100000
+#define nbr_iterations 1E7
 #define nbr_dim 3
 
 double calculate_wave_function(double[nbr_dim], double[nbr_dim], double);
@@ -37,7 +37,7 @@ int main(){
   double error;
   double delta = 0.975;
   double alpha = 0.1434;
-  int equi_phase = 1500;
+  int equi_phase = 2000;
 
   size_t nbr_switching_state = 0;
 
@@ -50,8 +50,6 @@ int main(){
 
 
   double *energy = malloc(sizeof(double) * nbr_iterations);
-  double *electron1_distance = malloc(sizeof(double) * nbr_iterations);
-  double *electron2_distance = malloc(sizeof(double) * nbr_iterations);
   double *theta = malloc(sizeof(double) * nbr_iterations);
 
   int nbr_average_runs = 100;
@@ -129,36 +127,20 @@ int main(){
       energy[i] = local_energy(m1, m2, alpha);
 
     }
-    //save electron distance from origo
-    electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
-    electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
-
-    //save angle
-    theta[i] = calculate_angle(m1,m2);
 
   }// End main loop
 
-  //printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
   sum_tmp = 0;
   sum_squared_tmp = 0;
   for(i = 0; i < nbr_iterations; i++){
     sum_tmp += energy[i];
-    sum_squared_tmp += energy[i] * energy[i];
   }
   I_value = sum_tmp / nbr_iterations;
   save_I_value[kx] = I_value;
-  variance = (sum_squared_tmp / nbr_iterations - I_value * I_value);
-
-  printf("Avg energy current run =%f +- %f \nNumber of iterations per run=%ld\n", I_value, sqrt(variance), nbr_iterations);
-
-  avg_energy_all_runs += I_value / (double)nbr_average_runs;
-  variance_all_runs += variance / (double)pow(nbr_average_runs,2);
-
+  printf("%d\n", kx);
   } // End the overall average loop
 
-  double sigma_all = sqrt(variance_all_runs);
   double sigma_all2; 
-  printf("Avg energy all runs =%f +- %f \nNumber of iterations per run=%ld\n", avg_energy_all_runs,sigma_all, nbr_iterations);
   // Calculate variance
   double tmp_sum_var = 0;
   double tmp_sum_avg = 0;
@@ -168,65 +150,7 @@ int main(){
   }
   sigma_all2 = sqrt(tmp_sum_var - tmp_sum_avg*tmp_sum_avg);
 
-  printf("only I: %f var of var: %f\n", sigma_all2, sigma_all);
-  error = sqrt(variance / nbr_iterations);
-
-  /*
-  FILE *fp;
-
-  //Write to file, energy_data_eq
-  fp = fopen("energy_data_eq.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%ld \t %e", i, energy[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
-
-
-  // Checking statistical inefficiency
-  int k= 20;
-  int max_block = nbr_iterations/500;
-  double s_block[max_block];
-
-  FILE * values_block;
-  values_block = fopen("block_value.dat", "w");
-
-  for (int B = 1; B<max_block+1; B++){
-    s_block[B-1] = block_average(energy, nbr_iterations, B);
-    fprintf(values_block, "%d \t %f\n", B, s_block[B-1]);
-  }
-  fclose(values_block);
-  int s_acf = auto_corr_fun(energy, nbr_iterations, k);
-
-  double s_block_avg_avg = 0;
-  int start_avg = max_block/2;
-  for (i=start_avg; i<max_block; i++){
-    s_block_avg_avg += s_block[i] / (double)(max_block-start_avg);
-  }
-
-  printf("s_corr = %d\ns_block =%f\n", s_acf,s_block_avg_avg);
-
-
-  // Deallocate rng
-  gsl_rng_free (q);
-
-  FILE *fp2;
-  //Write to file, electron distance from origo data
-  fp2 = fopen("electron_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp2, "%e \t %e", electron1_distance[i], electron2_distance[i]);
-    fprintf(fp2, "\n");
-  }
-  fclose(fp2);
-
-  //Write to file, theta distribution data
-  fp = fopen("theta_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%e", theta[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
-  */
+  printf("only I: %f\n", sigma_all2);
 }//End MAIN
 
 
@@ -364,16 +288,3 @@ void center_data(double*data, int nbr_of_lines){
     data[i]=data[i]-main_mean;
   }
 }
-
-
-// // Setup random number generator
-// double rand;
-// const gsl_rng_type *T; /* static info about rngs */
-// gsl_rng *q; /* rng instance */
-// gsl_rng_env_setup(); /* setup the rngs */
-// T = gsl_rng_default; /* specify default rng */
-// q = gsl_rng_alloc(T); /* allocate default rng */
-// gsl_rng_set(q,time(NULL)); /* Initialize rng */
-// rand = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
-// // Deallocate rng
-// gsl_rng_free (q);

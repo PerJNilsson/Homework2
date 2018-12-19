@@ -147,7 +147,7 @@ double calculate_wave_function(double r1[nbr_dim], double r2[nbr_dim], double al
   norm_r1 = sqrt(r1[0]*r1[0] + r1[1]*r1[1] + r1[2]*r1[2]);
   norm_r2 = sqrt(r2[0]*r2[0] + r2[1]*r2[1] + r2[2]*r2[2]);
   norm_r1r2 =sqrt((r1[0]-r2[0])*(r1[0]-r2[0]) +
-    (r1[1]-r2[1])*(r1[1]-r2[1]) + (r1[2]-r2[2])*(r1[2]-r2[2]));
+                 (r1[1]-r2[1])*(r1[1]-r2[1]) + (r1[2]-r2[2])*(r1[2]-r2[2]));
 
   value = exp(-2*norm_r1) * exp(-2*norm_r2) *
     exp(norm_r1r2 / (2 * (1+alpha*norm_r1r2)));
@@ -198,17 +198,3 @@ double calculate_angle(double r1[nbr_dim], double r2[nbr_dim]){
 
   return theta;
 }
-
-
-
-// // Setup random number generator
-// double rand;
-// const gsl_rng_type *T; /* static info about rngs */
-// gsl_rng *q; /* rng instance */
-// gsl_rng_env_setup(); /* setup the rngs */
-// T = gsl_rng_default; /* specify default rng */
-// q = gsl_rng_alloc(T); /* allocate default rng */
-// gsl_rng_set(q,time(NULL)); /* Initialize rng */
-// rand = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
-// // Deallocate rng
-// gsl_rng_free (q);

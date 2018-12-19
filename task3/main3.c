@@ -51,9 +51,6 @@ int main(){
 
 
   double *energy = malloc(sizeof(double) * nbr_iterations);
-  double *electron1_distance = malloc(sizeof(double) * nbr_iterations);
-  double *electron2_distance = malloc(sizeof(double) * nbr_iterations);
-  double *theta = malloc(sizeof(double) * nbr_iterations);
   double * alpha_energy_values = malloc(sizeof(double)*different_alphas);
   double * alpha_energy_std = malloc(sizeof(double)*different_alphas);
   double * alpha_values = malloc(sizeof(double)*different_alphas);
@@ -133,13 +130,7 @@ int main(){
           energy[i] = local_energy(m1, m2, alpha);
           
         }
-        //save electron distance from origo
-        electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
-        electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
-        
-        //save angle
-        theta[i] = calculate_angle(m1,m2);
-        
+       
       }// End main loop
       
       sum_tmp = 0;
@@ -150,10 +141,7 @@ int main(){
 
       alpha_energy_values[jx] += I_value / iterations_per_alpha;
       alpha_energy_std[jx] += I_value*I_value / iterations_per_alpha;
-      //printf("Avg energy =%f \n", I_value);
-      //printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
     }
-    //statistical_s[jx] = auto_corr_fun(energy, nbr_iterations, 20);
   }
   
   FILE* alpha_energy;
@@ -172,54 +160,8 @@ int main(){
   variance = sum_tmp / nbr_iterations - I_value * I_value;
   error = sqrt(variance / nbr_iterations);
 
-  /*
-  // Checking statistical inefficiency
-  int k= 20;
-  int max_block = nbr_iterations/1000;
-  double s_block[max_block];
-
-  for (int B = 1; B<max_block+1; B++){
-    s_block[B-1] = block_average(energy, nbr_iterations, B);
-  }
-  int s_acf = auto_corr_fun(energy, nbr_iterations, k);
-
-  double s_block_avg_avg = 0;
-  int start_avg = max_block/2;
-  for (i=start_avg; i<max_block; i++){
-    s_block_avg_avg += s_block[i] / (double)(max_block-start_avg);
-  }
-
-  printf("s_corr = %d\ns_block =%f\n", s_acf,s_block_avg_avg);
-  */
-
   // Deallocate rng
   gsl_rng_free (q);
-
-  FILE *fp;
-
-  //Write to file, energy_data_eq
-  fp = fopen("energy_data_eq.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%ld \t %e", i, energy[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
-
-  //Write to file, electron distance from origo data
-  fp = fopen("electron_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%e \t %e", electron1_distance[i], electron2_distance[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
-
-  //Write to file, theta distribution data
-  fp = fopen("theta_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%e", theta[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
 }//End MAIN
 
 
@@ -358,15 +300,3 @@ void center_data(double*data, int nbr_of_lines){
   }
 }
 
-
-// // Setup random number generator
-// double rand;
-// const gsl_rng_type *T; /* static info about rngs */
-// gsl_rng *q; /* rng instance */
-// gsl_rng_env_setup(); /* setup the rngs */
-// T = gsl_rng_default; /* specify default rng */
-// q = gsl_rng_alloc(T); /* allocate default rng */
-// gsl_rng_set(q,time(NULL)); /* Initialize rng */
-// rand = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
-// // Deallocate rng
-// gsl_rng_free (q);

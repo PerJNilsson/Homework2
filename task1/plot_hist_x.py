@@ -48,19 +48,4 @@ plt.title('Histogram of P(x), where ' + r'$x=cos(\theta)$')
 plt.savefig('1_px.png')
 # display the plot
 
-"""
-(mu4, sigma4)  = norm.fit(data[:,3])
-(mu3, sigma3)  = norm.fit(data[:,2])
-(mu2, sigma2)  = norm.fit(data[:,1])
-(mu1, sigma1)  = norm.fit(data[:,0])
-
-x = np.linspace(mu1 - 3*sigma1, mu1 + 3*sigma1, 100)
-plt.plot(x,mlab.normpdf(x, mu1, sigma1), '--', color='Black', linewidth=3)
-x1 = np.linspace(mu2 - 3*sigma2, mu2 + 3*sigma2, 100)
-plt.plot(x1,mlab.normpdf(x1, mu2, sigma2), '--', color='Black', linewidth=3)
-x2 = np.linspace(mu3 - 3*sigma3, mu3 + 3*sigma3, 100)
-plt.plot(x2,mlab.normpdf(x2, mu3, sigma3), '--', color='Black', linewidth=3)
-x3 = np.linspace(mu4 - 3*sigma4, mu4 + 3*sigma4, 100)
-plt.plot(x3,mlab.normpdf(x3, mu4, sigma4), '--', color='Black', linewidth=3)
-"""
 plt.show()

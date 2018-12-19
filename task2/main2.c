@@ -121,16 +121,9 @@ int main(){
       energy[i] = local_energy(m1, m2, alpha);
 
     }
-    //save electron distance from origo
-    electron1_distance[i] = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
-    electron2_distance[i] = sqrt(m2[0]*m2[0] + m2[1]*m2[1] + m2[2]*m2[2]);
-
-    //save angle
-    theta[i] = calculate_angle(m1,m2);
 
   }// End main loop
 
-  printf("Precent switched states:%f\n", nbr_switching_state / (double) nbr_iterations);
   sum_tmp = 0;
   for(i = 0; i < nbr_iterations; i++){
     sum_tmp += energy[i];
@@ -184,24 +177,6 @@ int main(){
 
   // Deallocate rng
   gsl_rng_free (q);
-
-  FILE *fp2;
-  //Write to file, electron distance from origo data
-  fp2 = fopen("electron_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp2, "%e \t %e", electron1_distance[i], electron2_distance[i]);
-    fprintf(fp2, "\n");
-  }
-  fclose(fp2);
-
-  //Write to file, theta distribution data
-  fp = fopen("theta_dist.dat","w");
-  for (i = 0; i < nbr_iterations; i++){
-    fprintf(fp, "%e", theta[i]);
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
-
 }//End MAIN
 
 
@@ -339,16 +314,3 @@ void center_data(double*data, int nbr_of_lines){
     data[i]=data[i]-main_mean;
   }
 }
-
-
-// // Setup random number generator
-// double rand;
-// const gsl_rng_type *T; /* static info about rngs */
-// gsl_rng *q; /* rng instance */
-// gsl_rng_env_setup(); /* setup the rngs */
-// T = gsl_rng_default; /* specify default rng */
-// q = gsl_rng_alloc(T); /* allocate default rng */
-// gsl_rng_set(q,time(NULL)); /* Initialize rng */
-// rand = gsl_rng_uniform(q); /* generate random number 0-1 (repeatable) */
-// // Deallocate rng
-// gsl_rng_free (q);
