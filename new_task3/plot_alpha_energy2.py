@@ -19,7 +19,7 @@ plt.figure(figsize=(8.5,6.2))
 x = np.linspace(0, len(data), len(data))
 # plot
 xerr = 0
-plt.errorbar(data[:,0], data[:,1], yerr=2*data[:,2],fmt='o', ecolor='r', capthick=2, label='error bars = 2'+r'$\sigma$')
+plt.errorbar(data[:,0], data[:,1], yerr=2*data[:,2],fmt='.', ecolor='r', capthick=1, label='error bars = 2'+r'$\sigma$')
 
 
 # labels
